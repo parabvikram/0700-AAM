@@ -1,0 +1,46 @@
+
+name: Build KICK VST3 for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-kick-vst3.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: >
+          cmake -S Kick -B build
+          -DKICK_VST_PLUGIN=ON
+          -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build KICK VST3
+        run: cmake --build build --config Release --target kickvst --parallel 2
+
+      - name: Package VST3 plugin
+        shell: pwsh
+        run: |
+          $plugins = Get-ChildItem -Path build -Recurse -Directory -Filter "*.vst3"
+          if (-not $plugins) {
+            throw "No VST3 bundle found. Check the build output."
+          }
+          $plugin = $plugins | Select-Object -First 1
+          Compress-Archive -Path $plugin.FullName -DestinationPath "$env:GITHUB_WORKSPACE\KICK-VST3-Windows.zip" -Force
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: KICK-VST3-Windows
+          path: KICK-VST3-Windows.zip
+          if-no-files-found: error
+          retention-days: 7
