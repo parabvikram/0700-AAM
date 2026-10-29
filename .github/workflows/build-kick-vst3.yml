@@ -3,9 +3,6 @@ name: Build KICK VST3 for Windows
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/build-kick-vst3.yml"
 
 permissions:
   contents: read
@@ -19,12 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure CMake
-  run: >
-    cmake -S Kick -B build
-    -DKICK_VST_PLUGIN=ON
-    -DCMAKE_BUILD_TYPE=Release
-    "-DCPM_AudIO_SOURCE=${{ github.workspace }}/AudIO"
-    "-DCPM_COM_PROTOCOL_SOURCE=${{ github.workspace }}/ComProtocol"
+        shell: pwsh
+        run: |
+          cmake -S Kick -B build -DKICK_VST_PLUGIN=ON -DCMAKE_BUILD_TYPE=Release "-DCPM_AudIO_SOURCE=${{ github.workspace }}/AudIO" "-DCPM_COM_PROTOCOL_SOURCE=${{ github.workspace }}/ComProtocol"
+
       - name: Build KICK VST3
         run: cmake --build build --config Release --target kickvst --parallel 2
 
