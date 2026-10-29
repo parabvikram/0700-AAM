@@ -15,10 +15,14 @@ jobs:
       - name: Download source code
         uses: actions/checkout@v4
 
+      
       - name: Configure CMake
         shell: pwsh
         run: |
-          cmake -S Kick -B build -DKICK_VST_PLUGIN=ON -DCMAKE_BUILD_TYPE=Release "-DCPM_AudIO_SOURCE=${{ github.workspace }}/AudIO" "-DCPM_COM_PROTOCOL_SOURCE=${{ github.workspace }}/ComProtocol"
+          $audio = (Join-Path $env:GITHUB_WORKSPACE "AudIO").Replace('\', '/')
+          $protocol = (Join-Path $env:GITHUB_WORKSPACE "ComProtocol").Replace('\', '/')
+          cmake -S Kick -B build -DKICK_VST_PLUGIN=ON -DCMAKE_BUILD_TYPE=Release "-DCPM_AudIO_SOURCE=$audio" "-DCPM_COM_PROTOCOL_SOURCE=$protocol"
+
 
       - name: Build KICK VST3
         run: cmake --build build --config Release --target kickvst --parallel 2
