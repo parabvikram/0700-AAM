@@ -60,6 +60,19 @@ jobs:
           Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source/Kick/modules/common" -Force | Select-Object Name
 
           Write-Host "Checking generated build files..."
+          Get-ChildItem "$env:GITHUB_WORKSPACE/build" -Filter "config.h" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName      - name: Diagnose missing config.h
+        shell: pwsh
+        run: |
+          Write-Host "Searching for config.h..."
+          Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source" -Filter "config.h" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+
+          Write-Host "Searching for config.h templates..."
+          Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source" -Include "config.h.in","config.h.cmake","config.h.template" -Recurse -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+
+          Write-Host "Checking common module..."
+          Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source/Kick/modules/common" -Force | Select-Object Name
+
+          Write-Host "Checking generated build files..."
           Get-ChildItem "$env:GITHUB_WORKSPACE/build" -Filter "config.h" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 
           if ($LASTEXITCODE -ne 0) {
