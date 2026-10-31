@@ -25,8 +25,8 @@ jobs:
         shell: pwsh
         run: |
           $source = Join-Path $env:GITHUB_WORKSPACE "kick-source"
-          $audio = Join-Path $source "AudIO"
-          $protocol = Join-Path $source "ComProtocol"
+          $audio = (Join-Path $source "AudIO").Replace('\', '/')
+$protocol = (Join-Path $source "ComProtocol").Replace('\', '/')
 
           if (-not (Test-Path "$audio/juce_modules.cmake")) {
             throw "AudIO compatibility file is missing."
