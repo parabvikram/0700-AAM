@@ -1,4 +1,5 @@
 
+
 name: Build KICK VST3 for Windows
 
 on:
@@ -21,6 +22,21 @@ jobs:
           repository: KickEm-Tools/0700-AAM
           ref: main
           path: kick-source
+
+      - name: Fix VST3 config header include path
+        shell: pwsh
+        run: |
+          $pluginCmake = "$env:GITHUB_WORKSPACE/kick-source/Kick/apps/kickvst/CMakeLists.txt"
+
+          if (-not (Test-Path $pluginCmake)) {
+            throw "KICK VST3 CMakeLists.txt not found."
+          }
+
+          @'
+          target_include_directories(kickvst PRIVATE "${CMAKE_BINARY_DIR}/apps/kick")
+          '@ | Add-Content -Path $pluginCmake
+
+          Write-Host "Added KICK generated config.h include directory."
 
       - name: Configure CMake
         shell: pwsh
@@ -48,17 +64,35 @@ jobs:
             throw "CMake configuration failed."
           }
 
-      - name: Diagnose missing config.h
+      - name: Build KICK VST3
         shell: pwsh
         run: |
-          Write-Host "Searching for config.h..."
-          Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source" -Filter "config.h" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          cmake --build build --config Release --target kickvst --parallel 2
 
-          Write-Host "Searching for config.h templates..."
-          Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source" -Include "config.h.in","config.h.cmake","config.h.template" -Recurse -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          if ($LASTEXITCODE -ne 0) {
+            throw "KICK VST3 compilation failed."
+          }
 
-          Write-Host "Checking common module..."
-          Get-ChildItem "$env:GITHUB_WORKSPACE/kick-source/Kick/modules/common" -Force | Select-Object Name
+      - name: Package VST3 plugin
+        shell: pwsh
+        run: |
+          $plugins = Get-ChildItem build -Recurse -Directory -Filter "*.vst3"
 
-          Write-Host "Checking generated build files..."
-          Get-ChildItem "$env:GITHUB_WORKSPACE/build" -Filter "config.h" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          if (-not $plugins) {
+            throw "No VST3 bundle found."
+          }
+
+          $plugin = $plugins | Select-Object -First 1
+
+          Compress-Archive `
+            -Path $plugin.FullName `
+            -DestinationPath "$env:GITHUB_WORKSPACE/KICK-VST3-Windows.zip" `
+            -Force
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: KICK-VST3-Windows
+          path: KICK-VST3-Windows.zip
+          if-no-files-found: error
+          retention-days: 7
