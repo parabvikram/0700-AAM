@@ -72,7 +72,7 @@ jobs:
             ForEach-Object { Write-Host "$($_.Path):$($_.LineNumber): $($_.Line.Trim())" }
 
           Write-Host "Searching for the actual signal.h file..."
-          Get-ChildItem $root -Recurse -File -Filter signal.h |
+          Get-ChildItem $root -Recurse -File -Filter signal.hpp |
             ForEach-Object { Write-Host $_.FullName }
       - name: Build KICK VST3
         shell: pwsh
