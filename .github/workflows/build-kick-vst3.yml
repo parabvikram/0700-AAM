@@ -1,4 +1,3 @@
-
 name: Build KICK VST3 for Windows
 
 on:
@@ -12,30 +11,66 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Download source code
+      - name: Checkout workflow repository
         uses: actions/checkout@v4
 
-      
+      - name: Checkout compatibility-fixed KICK source
+        uses: actions/checkout@v4
+        with:
+          repository: KickEm-Tools/0700-AAM
+          ref: main
+          path: kick-source
+
       - name: Configure CMake
         shell: pwsh
         run: |
-          $audio = (Join-Path $env:GITHUB_WORKSPACE "AudIO").Replace('\', '/')
-          $protocol = (Join-Path $env:GITHUB_WORKSPACE "ComProtocol").Replace('\', '/')
-          cmake -S Kick -B build -DKICK_VST_PLUGIN=ON -DCMAKE_BUILD_TYPE=Release "-DCPM_AudIO_SOURCE=$audio" "-DCPM_COM_PROTOCOL_SOURCE=$protocol"
+          $source = Join-Path $env:GITHUB_WORKSPACE "kick-source"
+          $audio = Join-Path $source "AudIO"
+          $protocol = Join-Path $source "ComProtocol"
 
+          if (-not (Test-Path "$audio/juce_modules.cmake")) {
+            throw "AudIO compatibility file is missing."
+          }
+
+          if (-not (Test-Path "$source/Kick/modules/3rdParty/juce_serialport/juce_serialport.h")) {
+            throw "JUCE serial-port module is missing."
+          }
+
+          cmake -S "$source/Kick" -B build `
+            -DKICK_VST_PLUGIN=ON `
+            -DKICK_LINK_TESTS=OFF `
+            -DCMAKE_BUILD_TYPE=Release `
+            "-DCPM_AudIO_SOURCE=$audio" `
+            "-DCPM_COM_PROTOCOL_SOURCE=$protocol"
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "CMake configuration failed."
+          }
 
       - name: Build KICK VST3
-        run: cmake --build build --config Release --target kickvst --parallel 2
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --target kickvst --parallel 2
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "KICK VST3 compilation failed."
+          }
 
       - name: Package VST3 plugin
         shell: pwsh
         run: |
-          $plugins = Get-ChildItem -Path build -Recurse -Directory -Filter "*.vst3"
+          $plugins = Get-ChildItem build -Recurse -Directory -Filter "*.vst3"
+
           if (-not $plugins) {
-            throw "No VST3 bundle found. Check the build output."
+            throw "No VST3 bundle found."
           }
+
           $plugin = $plugins | Select-Object -First 1
-          Compress-Archive -Path $plugin.FullName -DestinationPath "$env:GITHUB_WORKSPACE\KICK-VST3-Windows.zip" -Force
+
+          Compress-Archive `
+            -Path $plugin.FullName `
+            -DestinationPath "$env:GITHUB_WORKSPACE/KICK-VST3-Windows.zip" `
+            -Force
 
       - name: Upload plugin
         uses: actions/upload-artifact@v4
