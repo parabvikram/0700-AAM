@@ -79,7 +79,7 @@ jobs:
             throw "KICK VST3 compilation failed."
           }
 
-      - name: Package VST3 plugin
+      - name: 
         shell: pwsh
         run: |
           $plugins = Get-ChildItem build -Recurse -Directory -Filter "*.vst3"
@@ -95,7 +95,7 @@ jobs:
             -DestinationPath "$env:GITHUB_WORKSPACE/KICK-VST3-Windows.zip" `
             -Force
 
-      - name: Upload plugin
+      - name: 
         uses: actions/upload-artifact@v4
         with:
           name: KICK-VST3-Windows
