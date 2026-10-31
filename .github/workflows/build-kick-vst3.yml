@@ -1,3 +1,4 @@
+```yaml
 name: Build KICK VST3 for Windows
 
 on:
@@ -25,8 +26,8 @@ jobs:
         shell: pwsh
         run: |
           $source = Join-Path $env:GITHUB_WORKSPACE "kick-source"
-          $audio = (Join-Path $source "AudIO").Replace('\', '/')
-$protocol = (Join-Path $source "ComProtocol").Replace('\', '/')
+          $audio = (Join-Path $source "AudIO") -replace '\\', '/'
+          $protocol = (Join-Path $source "ComProtocol") -replace '\\', '/'
 
           if (-not (Test-Path "$audio/juce_modules.cmake")) {
             throw "AudIO compatibility file is missing."
@@ -79,3 +80,4 @@ $protocol = (Join-Path $source "ComProtocol").Replace('\', '/')
           path: KICK-VST3-Windows.zip
           if-no-files-found: error
           retention-days: 7
+```
