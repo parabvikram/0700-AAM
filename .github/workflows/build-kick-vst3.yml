@@ -25,14 +25,18 @@ jobs:
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
-      - name: Fix KICK VST3 include paths
+           - name: Fix KICK VST3 include paths
         shell: pwsh
         run: |
           $signalFolder = "kick-source/Kick/modules/3rdParty/signal"
-          Copy-Item "$signalFolder/signal.hpp" "$signalFolder/signal.h"
+
+          @'
+          #pragma once
+          #include "signal.hpp"
+          '@ | Set-Content "$signalFolder/signal.h" -Encoding ascii
+
           $cmakeFile = "kick-source/Kick/apps/kickvst/CMakeLists.txt"
           Add-Content $cmakeFile 'target_include_directories(kickvst PRIVATE "${CMAKE_BINARY_DIR}/apps/kick" "${CMAKE_SOURCE_DIR}/modules" "${CMAKE_SOURCE_DIR}/modules/3rdParty")'
-
       - name: Configure CMake
         shell: pwsh
         run: |
