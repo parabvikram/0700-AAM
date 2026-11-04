@@ -1,7 +1,7 @@
 ```yaml
 name: Build KICK VST3 for Windows
 
-on:
+'on':
   workflow_dispatch:
 
 permissions:
