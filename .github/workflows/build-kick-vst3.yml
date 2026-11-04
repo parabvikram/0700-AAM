@@ -37,6 +37,18 @@ jobs:
 
           $cmakeFile = "kick-source/Kick/apps/kickvst/CMakeLists.txt"
           Add-Content $cmakeFile 'target_include_directories(kickvst PRIVATE "${CMAKE_BINARY_DIR}/apps/kick" "${CMAKE_SOURCE_DIR}/modules" "${CMAKE_SOURCE_DIR}/modules/3rdParty")'
+      
+      - name: Find magic_enum dependency
+        shell: pwsh
+        run: |
+          Write-Host "Searching for magic_enum..."
+          Get-ChildItem "kick-source" -Recurse -File -Filter "magic_enum.h" |
+            Select-Object -ExpandProperty FullName
+
+          Write-Host "Checking dependency folders..."
+          Get-ChildItem "kick-source/Kick/modules/3rdParty" -Directory |
+            Select-Object -ExpandProperty Name
+
       - name: Configure CMake
         shell: pwsh
         run: |
