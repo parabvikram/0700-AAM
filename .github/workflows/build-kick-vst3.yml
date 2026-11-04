@@ -61,7 +61,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "CMake configuration failed."
           }
-      - name: Diagnose missing signal header
+            - name: Add signal header include path
+        shell: pwsh
+        run: |
+          $pluginCmake = "$env:GITHUB_WORKSPACE/kick-source/Kick/apps/kickvst/CMakeLists.txt"
+
+          @'
+          target_include_directories(kickvst PRIVATE "${CMAKE_SOURCE_DIR}/modules/3rdParty")
+          '@ | Add-Content -Path $pluginCmake
+
+          Write-Host "Added signal header include path."
         shell: pwsh
         run: |
           $root = "$env:GITHUB_WORKSPACE/kick-source"
