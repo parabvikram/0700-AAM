@@ -27,7 +27,7 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-            - name: Fix KICK VST3 include paths
+      - name: Fix KICK VST3 include paths
         shell: pwsh
         run: |
           $cmakeFile = "kick-source/Kick/apps/kickvst/CMakeLists.txt"
