@@ -74,14 +74,18 @@ jobs:
           Write-Host "Searching for the actual signal.h file..."
           Get-ChildItem $root -Recurse -File -Filter signal.hpp |
             ForEach-Object { Write-Host $_.FullName }
+      
       - name: Build KICK VST3
         shell: pwsh
         run: |
-          cmake --build build --config Release --target kickvst --parallel 2
+          cmake --build build --config Release --target kickvst --parallel 2 2>&1 | Tee-Object -FilePath build-error.log
 
           if ($LASTEXITCODE -ne 0) {
-            throw "KICK VST3 compilation failed."
+            Write-Host "===== BUILD ERROR DETAILS ====="
+            Get-Content build-error.log -Tail 100
+            exit 1
           }
+
 
       - name: Package VST3 plugin
         shell: pwsh
