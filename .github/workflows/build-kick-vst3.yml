@@ -70,7 +70,18 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "CMake configuration failed."
           }
+      - name: Diagnose magic_enum
+        shell: pwsh
+        run: |
+          $header = "build/apps/kickvst/kickvst_artefacts/JuceLibraryCode/JuceHeader.h"
 
+          Write-Host "Checking generated JUCE header..."
+          Get-Content $header | Select-Object -First 45
+
+          Write-Host "Searching KICK source for magic_enum..."
+          Get-ChildItem "kick-source" -Recurse -File |
+            Select-String -Pattern "magic_enum" |
+            Select-Object -First 30
       - name: Build KICK VST3
         shell: pwsh
         run: |
