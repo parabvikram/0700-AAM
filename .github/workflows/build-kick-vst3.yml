@@ -25,17 +25,37 @@ jobs:
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+      
       - name: Fix KICK VST3 include paths
         shell: pwsh
         run: |
-          $signalFolder = "kick-source/Kick/modules/3rdParty/signal"
+          $thirdParty = "kick-source/Kick/modules/3rdParty"
+
+          # Fix signal header
+          $signalFolder = "$thirdParty/signal"
 
           @'
           #pragma once
           #include "signal.hpp"
           '@ | Set-Content "$signalFolder/signal.h" -Encoding ascii
 
+          # Fix magic_enum header compatibility
+          $magicFolder = "$thirdParty/magic_enum"
+
+          if (!(Test-Path "$magicFolder/magic_enum.hpp")) {
+            throw "magic_enum.hpp is missing!"
+          }
+
+          @'
+          #pragma once
+          #include "magic_enum.hpp"
+          '@ | Set-Content "$magicFolder/magic_enum.h" -Encoding ascii
+
+          Write-Host "magic_enum compatibility header created."
+
+          # Configure include paths
           $cmakeFile = "kick-source/Kick/apps/kickvst/CMakeLists.txt"
+
           Add-Content $cmakeFile 'target_include_directories(kickvst PRIVATE "${CMAKE_BINARY_DIR}/apps/kick" "${CMAKE_SOURCE_DIR}/modules" "${CMAKE_SOURCE_DIR}/modules/3rdParty")'
       
       - name: Find magic_enum dependency
