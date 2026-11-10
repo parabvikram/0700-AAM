@@ -132,8 +132,11 @@ jobs:
           }
       
      - name: Upload VST3 artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: KICK-VST3-Windows
+        
+       uses: actions/upload-artifact@v4
+        
+       with:
+          
+     name: KICK-VST3-Windows
           path: build/**/kickvst_artefacts/Release/VST3/**/*.vst3
           if-no-files-found: warn
