@@ -111,6 +111,27 @@ jobs:
             }
           }
 
+            - name: Find PktMgr references and dependencies
+        shell: pwsh
+        run: |
+          $root = "$env:GITHUB_WORKSPACE/kick-source"
+
+          Write-Host "Searching for PktMgr references..."
+
+          Get-ChildItem -Path $root -Recurse -File `
+            -Include *.h,*.hpp,*.cpp,*.cmake,CMakeLists.txt |
+            Select-String -Pattern "PktMgr|PktMgr.h" |
+            ForEach-Object {
+              Write-Host "$($_.Path):$($_.LineNumber): $($_.Line.Trim())"
+            }
+
+          Write-Host "Checking Git submodules..."
+
+          if (Test-Path "$root/.gitmodules") {
+            Get-Content "$root/.gitmodules"
+          } else {
+            Write-Host "No .gitmodules file found."
+          }
       - name: Build KICK VST3 and diagnose errors
         shell: pwsh
         run: |
