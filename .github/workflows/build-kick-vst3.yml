@@ -110,8 +110,28 @@ jobs:
               Write-Host "FOUND: $($file.FullName)"
             }
           }
+         
+            - name: Find PktMgr header
+        shell: pwsh
+        run: |
+          $root = "$env:GITHUB_WORKSPACE/kick-source"
 
-            - name: Find PktMgr references and dependencies
+          Write-Host "Searching for PktMgr.h..."
+
+          $matches = @(
+            Get-ChildItem -Path $root -Recurse -File -Filter "PktMgr.h" `
+              -ErrorAction SilentlyContinue
+          )
+
+          if ($matches.Count -eq 0) {
+            Write-Host "RESULT: PktMgr.h NOT FOUND"
+          } else {
+            foreach ($file in $matches) {
+              Write-Host "FOUND: $($file.FullName)"
+            }
+          }
+
+      - name: Find PktMgr references and dependencies
         shell: pwsh
         run: |
           $root = "$env:GITHUB_WORKSPACE/kick-source"
@@ -131,7 +151,7 @@ jobs:
             Get-Content "$root/.gitmodules"
           } else {
             Write-Host "No .gitmodules file found."
-          }
+          }   
       - name: Build KICK VST3 and diagnose errors
         shell: pwsh
         run: |
