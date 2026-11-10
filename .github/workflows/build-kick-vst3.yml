@@ -119,7 +119,7 @@ jobs:
           if ($buildExit -ne 0) {
             throw "KICK VST3 build failed. Exit code: $buildExit"
           }
-            - name: Find PktMgr header
+      - name: Find PktMgr header
         shell: pwsh
         run: |
           $root = "$env:GITHUB_WORKSPACE/kick-source"
